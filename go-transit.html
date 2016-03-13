@@ -1,0 +1,135 @@
+<link rel="import" href="https://polygit2.appspot.com/components/iron-ajax/iron-ajax.html">
+
+<dom-module id="go-transit">
+  <style>
+  :host {
+    display: block;
+    position: relative;
+    margin: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+  }
+
+  :host::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 20px;
+    bottom: 40px;
+    border-radius: 2px;
+    background-color: #fff;
+    opacity: 0.5;
+  }
+
+  .cars-container {
+    position: relative;
+    height: 44px;
+    overflow-x: auto;
+  }
+
+  .car {
+    position: absolute;
+  }
+
+  .marker {
+    margin: auto;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    background-color: purple;
+    line-height: 24px;
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .label {
+    line-height: 20px;
+    font-size: 16px;
+    text-align: center;
+  }
+  </style>
+
+  <template>
+    <iron-ajax url="[[_url]]" last-response="{{_response}}"  handle-as="document" auto></iron-ajax>
+
+    <div class="cars-container">
+      <template is="dom-repeat" items="[[routes]]" as="route">
+        <template is="dom-repeat" items="[[route.directions]]" as="direction">
+          <template is="dom-repeat" items="[[direction.predictions]]" as="prediction">
+            <div class="car" style$="[[_computeCarPosition(prediction.epochTime, _now)]]">
+              <div class="marker">[[route.routeTag]]</div>
+              <div class="label">[[_computeMinsLeft(prediction.epochTime, _now)]]'</div>
+            </div>
+          </template>
+        </template>
+      </template>
+    </div>
+  </template>
+
+  <script>
+  Polymer({
+    is: 'go-transit',
+
+    properties: {
+      routes: {
+        type: Object,
+        computed: '_computeRoutes(_response)'
+      },
+
+      _url: {
+        type: String,
+        value: 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=L&stopId=16627'
+      },
+
+      _response: Object,
+
+      _now: Number
+    },
+
+    _tickTimer: null,
+
+    attached: function() {
+      this._now = Date.now();
+      this._tickTimer =window.setInterval(this._tick.bind(this), 1000);
+    },
+
+    detached: function() {
+      window.clearInterval(this._tickTimer);
+    },
+    
+    _computeRoutes: function() {
+      return Array.prototype.map.call(this._response.firstElementChild.children, function(predictions) {
+        return {
+          routeTag: predictions.getAttribute('routeTag'),
+          directions: Array.prototype.map.call(predictions.getElementsByTagName('direction'), function(direction) {
+            return {
+              predictions: Array.prototype.map.call(direction.getElementsByTagName('prediction'), function(prediction) {
+                return {
+                  epochTime: parseInt(prediction.getAttribute('epochTime'), 10)
+                };
+              })
+            };
+          })
+        };
+      });
+    },
+
+    _tick: function() {
+      this._now = Date.now();
+    },
+
+    _computeCarPosition: function(eta, now) {
+      if (eta < now) {
+        return 'display: none';
+      }
+      return 'transform: translate3d(' + ((eta - now) / 5000).toFixed(0) + 'px, 0 ,0);';
+    },
+    
+    _computeMinsLeft: function(eta, now) {
+      return ((eta - now) / 1000 / 60).toFixed(0);
+    }
+  });
+  </script>
+</dom-module>
