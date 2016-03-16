@@ -1,0 +1,60 @@
+<link rel="import" href="https://polygit2.appspot.com/components/iron-ajax/iron-ajax.html">
+
+<dom-module id="go-clock">
+  <style>
+  :host {
+    margin: 20px;
+    display: block;
+    color: white;
+    text-shadow: 0 0 5px #000;
+  }
+
+  #time {
+    font-size: 60px;
+    font-weight: 100;
+  }
+
+  #date {
+    font-size: 24px;
+    font-weight: 300;
+  }
+  </style>
+
+  <template>
+    <div id="time">[[_getTimeString(_now)]]</div>
+    <div id="date">[[_getDateString(_now)]]</div>
+  </template>
+
+  <script>
+  Polymer({
+    is: 'go-clock',
+
+    properties: {
+      _now: Number
+    },
+
+    _secondTimer: null,
+
+    attached: function() {
+      this._now = new Date();
+      this._secondTimer = window.setInterval(this._secondElapsed.bind(this), 1000);
+    },
+
+    detached: function() {
+      window.clearInterval(this._secondTimer);
+    },
+
+    _secondElapsed: function() {
+      this._now = new Date();
+    },
+
+    _getTimeString: function() {
+      return this._now.toLocaleTimeString();
+    },
+
+    _getDateString: function() {
+      return this._now.toDateString();
+    }
+  });
+  </script>
+</dom-module>
