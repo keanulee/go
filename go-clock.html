@@ -50,7 +50,7 @@
     },
 
     _getTimeString: function() {
-      return this._now.toLocaleTimeString();
+      return this._now.toLocaleTimeString().substring(0, 11);
     },
 
     _getDateString: function() {
