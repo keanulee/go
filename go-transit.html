@@ -32,23 +32,18 @@
 
   .car {
     position: absolute;
+    line-height: 20px;
+    text-align: center;
   }
 
-  .marker {
-    margin: auto;
+  .car::before {
+    content: attr(route);
+    display: block;
+    background-color: purple;
     border-radius: 50%;
     width: 24px;
-    height: 24px;
-    background-color: purple;
     line-height: 24px;
     font-size: 18px;
-    text-align: center;
-  }
-
-  .label {
-    line-height: 20px;
-    font-size: 16px;
-    text-align: center;
   }
   </style>
 
@@ -60,9 +55,9 @@
       <template is="dom-repeat" items="[[routes]]" as="route">
         <template is="dom-repeat" items="[[route.directions]]" as="direction">
           <template is="dom-repeat" items="[[direction.predictions]]" as="prediction">
-            <div class="car" style$="[[_computeCarPosition(prediction.epochTime, _now)]]">
-              <div class="marker">[[route.routeTag]]</div>
-              <div class="label">[[_computeMinsLeft(prediction.epochTime, _now)]]</div>
+            <div class="car" route$="[[route.routeTag]]"
+                style$="[[_computeCarPosition(prediction.epochTime, _now)]]">
+              [[_computeMinsLeft(prediction.epochTime, _now)]]
             </div>
           </template>
         </template>
@@ -96,34 +91,37 @@
     _minuteTimer: null,
 
     attached: function() {
-      this._now = Date.now();
-      this._secondTimer = window.setInterval(this._secondElapsed.bind(this), 1000);
-      this._minuteTimer = window.setInterval(this._minuteElapsed.bind(this), 60000);
-
+      this._setTimers();
       document.addEventListener('visibilitychange', this._handleVisibilityChange.bind(this));
     },
 
     detached: function() {
-      window.clearInterval(this._secondTimer);
-      window.clearInterval(this._minuteTimer);
+      this._removeTimers();
     },
 
     _handleVisibilityChange: function() {
-      if (document.hidden) {
-        window.clearInterval(this._minuteTimer);
-      } else {
-        this.$.ajax.generateRequest();
-        this._minuteTimer = window.setInterval(this._minuteElapsed.bind(this), 60000);
-      }
+      document.hidden ? this._removeTimers() : this._setTimers();
+    },
+
+    _setTimers: function() {
+      this.$.ajax.generateRequest();
+      this._now = Date.now();
+      this._secondTimer = window.setInterval(this._secondElapsed.bind(this), 1000);
+      this._minuteTimer = window.setInterval(this._minuteElapsed.bind(this), 60000);
+    },
+
+    _removeTimers: function() {
+      window.clearInterval(this._secondTimer);
+      window.clearInterval(this._minuteTimer);
     },
     
     _computeRoutes: function() {
-      return Array.prototype.map.call(this._response.firstElementChild.children, function(predictions) {
+      return this._map(this._response.firstElementChild.children, function(predictions) {
         return {
           routeTag: predictions.getAttribute('routeTag'),
-          directions: Array.prototype.map.call(predictions.getElementsByTagName('direction'), function(direction) {
+          directions: this._map(predictions.getElementsByTagName('direction'), function(direction) {
             return {
-              predictions: Array.prototype.map.call(direction.getElementsByTagName('prediction'), function(prediction) {
+              predictions: this._map(direction.getElementsByTagName('prediction'), function(prediction) {
                 return {
                   epochTime: parseInt(prediction.getAttribute('epochTime'), 10)
                 };
@@ -132,6 +130,10 @@
           })
         };
       });
+    },
+
+    _map: function(nodes, fn) {
+      return Array.prototype.map.call(nodes, fn.bind(this));
     },
 
     _secondElapsed: function() {
