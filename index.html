@@ -13,43 +13,37 @@
   <title>Dashboard</title>
 
   <script src="https://polygit.org/components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <link rel="import" href="go-background.html">
   <link rel="import" href="go-clock.html">
   <link rel="import" href="go-transit.html">
   <link rel="import" href="go-weather.html">
 
   <style>
-
   body {
-    background-image: url("http://traffic.kron.com/TrafficCams/cam3_2_large.jpg");
-    background-repeat: no-repeat;
-    background-size: auto 110%;
-    background-position: 40%;
-    background-attachment: fixed;
-    overflow-x: hidden;
-    position: relative;
-    max-width: 800px;
-    margin: auto;
-    height: 100vh;
     font-family: sans-serif;
   }
 
   main {
+    display: block;
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
+    max-width: 800px;
+    margin: auto;
   }
-
   </style>
 
 </head>
 <body>
 
-  <main>
-    <go-clock></go-clock>
-    <go-transit></go-transit>
-    <go-weather></go-weather>
-  </main>
+  <go-background>
+    <main>
+      <go-clock></go-clock>
+      <go-transit></go-transit>
+      <go-weather></go-weather>
+    </main>
+  </go-background>
 
   <script>
   if ('serviceWorker' in navigator) {

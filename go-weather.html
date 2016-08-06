@@ -1,25 +1,26 @@
 <link rel="import" href="https://polygit.org/components/polymer/polymer.html">
 <link rel="import" href="https://polygit.org/components/iron-ajax/iron-ajax.html">
+<link rel="import" href="go-refresh-behavior.html">
 <script src="https://code.highcharts.com/highcharts.js"></script>
 
 <dom-module id="go-weather">
-  <style>
-  :host {
-    display: block;
-    position: relative;
-    margin: 10px;
-    padding: 10px 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-  }
-
-  #chart {
-    height: 200px;
-  }
-  </style>
-
   <template>
-    <iron-ajax url="[[_url]]" last-response="{{_response}}" on-response="_renderChart" auto></iron-ajax>
+    <style>
+    :host {
+      display: block;
+      position: relative;
+      margin: 10px;
+      padding: 10px 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+    }
+
+    #chart {
+      height: 200px;
+    }
+    </style>
+
+    <iron-ajax id="ajax" url="[[_url]]" on-response="_renderChart"></iron-ajax>
 
     <div id="chart"></div>
   </template>
@@ -28,20 +29,19 @@
   Polymer({
     is: 'go-weather',
 
+    behaviors: [
+      RefreshBehavior
+    ],
+
     properties: {
       _url: {
         type: String,
         value: 'https://api.worldweatheronline.com/free/v2/weather.ashx?key=4c6df087794e4d7497635723161603&format=json&q=san+francisco'
-      },
-
-      _response: Object
+      }
     },
 
-    _renderChart: function() {
-      var hourly = this._response.data.weather[0].hourly.slice(2);
-      var times = ['8 AM', '11 AM', '2 PM', '5 PM', '8 PM', '11 PM'];
-      var temps = hourly.map(function(item) { return parseInt(item.tempC, 10); });
-      var pops = hourly.map(function(item) { return parseInt(item.chanceofrain, 10); });
+    attached: function() {
+      this.refreshInterval = 3600000;
 
       this._chart = new Highcharts.Chart({
         chart: {
@@ -49,38 +49,26 @@
           backgroundColor: 'transparent',
           alignTicks: false
         },
-        title: {
-          text: ''
-        },
+        title: { text: '' },
         xAxis: [{
           labels: {
-            style: {
-              color: '#FFF'
-            }
+            style: { color: '#FFF' }
           },
-          categories: times,
+          categories: ['8 AM', '11 AM', '2 PM', '5 PM', '8 PM', '11 PM'],
           crosshair: true
         }],
         yAxis: [{
-          title: {
-            text: ''
-          },
+          title: { text: '' },
           labels: {
             format: '{value}°C',
-            style: {
-              color: '#FFF'
-            }
+            style: { color: '#FFF' }
           },
           min: 0,
           max: 30,
           allowDecimals: false
         }, {
-          title: {
-            text: ''
-          },
-          labels: {
-            enabled: false
-          },
+          title: { text: '' },
+          labels: { enabled: false },
           min: 0,
           max: 100,
           gridLineWidth: 0,
@@ -95,29 +83,36 @@
             };
           }.bind(this)
         },
-        legend: {
-          enabled: false
-        },
+        legend: { enabled: false },
         series: [{
           name: 'Temp',
           type: 'spline',
           color: '#FFF',
-          data: temps,
-          tooltip: {
-            valueSuffix: '°C'
-          }
+          data: [null, null, null, null, null, null],
+          tooltip: { valueSuffix: '°C' }
         }, {
           name: 'Rain',
           type: 'column',
           borderColor: '#4CF',
           color: 'rgba(68, 204, 255, 0.5)',
           yAxis: 1,
-          data: pops,
-          tooltip: {
-            valueSuffix: '%'
-          }
+          data: [null, null, null, null, null, null],
+          tooltip: { valueSuffix: '%' }
         }]
       });
+    },
+
+    refreshImpl: function() {
+      this.$.ajax.generateRequest();
+    },
+
+    _renderChart: function(event) {
+      var hourly = event.detail.response.data.weather[0].hourly.slice(2);
+      var temps = hourly.map(function(item) { return parseInt(item.tempC, 10); });
+      var pops = hourly.map(function(item) { return parseInt(item.chanceofrain, 10); });
+
+      this._chart.series[0].setData(temps, false /* redraw */);
+      this._chart.series[1].setData(pops);
     }
   });
   </script>

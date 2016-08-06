@@ -1,0 +1,80 @@
+<link rel="import" href="https://polygit.org/components/polymer/polymer.html">
+<link rel="import" href="go-refresh-behavior.html">
+
+<dom-module id="go-background">
+  <template>
+    <style>
+    :host,
+    #cover {
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #000;
+      background-repeat: no-repeat;
+      background-size: auto 110%;
+      background-position: 40%;
+      background-attachment: fixed;
+    }
+
+    #cover {
+      transition: opacity 0.2s;
+      will-change: opacity;
+    }
+
+    </style>
+
+    <div id="cover"></div>
+
+    <content></content>
+  </template>
+
+  <script>
+  Polymer({
+    is: 'go-background',
+
+    behaviors: [
+      RefreshBehavior
+    ],
+
+    _imgSrc: '',
+
+    _fadingImg: false,
+
+    attached: function() {
+      this.refreshInterval = 600000;
+
+      requestAnimationFrame(function() {
+        this.addEventListener('transitionend', this._transitionEnd.bind(this));
+      }.bind(this));
+    },
+
+    refreshImpl: function() {
+      this._loadImage();
+    },
+
+    _loadImage: function() {
+      this._imgSrc = 'http://traffic.kron.com/TrafficCams/cam3_2_large.jpg?' + Math.random();
+      var img = document.createElement('img');
+      img.addEventListener('load', this._imageLoaded.bind(this));
+      img.src = this._imgSrc;
+    },
+
+    _imageLoaded: function() {
+      this.style.backgroundImage = 'url("' + this._imgSrc + '")';
+      this._fadingImg = true;
+      this.$.cover.style.opacity = '0';
+    },
+
+    _transitionEnd: function() {
+      if (this._fadingImg) {
+        this._fadingImg = false;
+        this.$.cover.style.backgroundImage = 'url("' + this._imgSrc + '")';
+        this.$.cover.style.opacity = '';
+      }
+    }
+  });
+  </script>
+</dom-module>

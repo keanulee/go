@@ -1,0 +1,72 @@
+<script>
+(function(scope) {
+  scope._registeredElements = [];
+
+  function _refreshAll() {
+    for (var i = 0; i < _registeredElements.length; ++i) {
+      _registeredElements[i].refresh();
+    }
+  }
+
+  function _clearAllTimers() {
+    for (var i = 0; i < _registeredElements.length; ++i) {
+      _registeredElements[i]._clearTimer();
+    }
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    document.hidden ? _clearAllTimers() : _refreshAll();
+  });
+
+  scope.RefreshBehavior = {
+    properties: {
+      refreshInterval: {
+        type: Number,
+        observer: '_resetTimer'
+      }
+    },
+
+    _refreshTimer: null,
+
+    attached: function() {
+      if (_registeredElements.indexOf(this) === -1) {
+        _registeredElements.push(this);
+      }
+      this.refresh();
+    },
+
+    detached: function() {
+      this._clearTimer();
+      var i = _registeredElements.indexOf(this);
+      if (i !== -1) {
+        _registeredElements.splice(i, 1);
+      }
+    },
+
+    refreshAll: function() {
+      _refreshAll();
+    },
+
+    refresh: function() {
+      this._resetTimer();
+      this.refreshImpl();
+    },
+
+    refreshImpl: function() { /* noop - to be overwritten */ },
+
+    _resetTimer: function() {
+      this._clearTimer();
+      if (this.refreshInterval > 0) {
+        this._refreshTimer = window.setTimeout(this.refresh.bind(this), this.refreshInterval);
+      }
+    },
+
+    _clearTimer: function() {
+      if (this._refreshTimer !== null) {
+        window.clearTimeout(this._refreshTimer);
+        this._refreshTimer = null;
+      }
+    }
+  };
+})(window);
+</script>

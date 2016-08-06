@@ -1,0 +1,24 @@
+<script>
+(function(scope) {
+  scope.NowBehavior = {
+    properties: {
+      now: Object
+    },
+
+    _nowTimer: null,
+
+    attached: function() {
+      this.now = new Date();
+      this._nowTimer = window.setInterval(this._tick.bind(this), 1000);
+    },
+
+    detached: function() {
+      window.clearInterval(this._nowTimer);
+    },
+
+    _tick: function() {
+      this.now = new Date();
+    },
+  };
+})(window);
+</script>
