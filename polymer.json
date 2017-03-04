@@ -1,0 +1,14 @@
+{
+  "builds": [{
+    "name": "bundled",
+    "bundle": true,
+    "js": {"minify": true},
+    "css": {"minify": true},
+    "html": {"minify": true}
+  }],
+  "extraDependencies": [
+    "bower_components/sw-toolbox/sw-toolbox.js",
+    "manifest.json",
+    "sw.js"
+  ]
+}

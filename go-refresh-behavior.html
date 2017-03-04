@@ -1,6 +1,6 @@
 <script>
-(function(scope) {
-  scope._registeredElements = [];
+(function() {
+  var _registeredElements = [];
 
   function _refreshAll() {
     for (var i = 0; i < _registeredElements.length; ++i) {
@@ -18,7 +18,8 @@
     document.hidden ? _clearAllTimers() : _refreshAll();
   });
 
-  scope.RefreshBehavior = {
+  /* @polymerBehavior */
+  window.RefreshBehavior = {
     properties: {
       refreshInterval: {
         type: Number,
@@ -68,5 +69,5 @@
       }
     }
   };
-})(window);
+})();
 </script>
