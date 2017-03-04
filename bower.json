@@ -1,0 +1,17 @@
+{
+  "name": "go",
+  "homepage": "",
+  "authors": [
+    "Keanu Lee"
+  ],
+  "description": "",
+  "main": "",
+  "license": "",
+  "private": true,
+  "dependencies": {
+    "highcharts": "^5.0.7",
+    "iron-ajax": "^1.4.3",
+    "polymer": "^1.8.1",
+    "sw-toolbox": "^3.6.1"
+  }
+}
