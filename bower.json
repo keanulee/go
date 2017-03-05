@@ -10,8 +10,8 @@
   "private": true,
   "dependencies": {
     "highcharts": "^5.0.7",
-    "iron-ajax": "^1.4.3",
-    "polymer": "^1.8.1",
+    "iron-ajax": "2.0-preview",
+    "polymer": "2.0-preview",
     "sw-toolbox": "^3.6.1"
   }
 }

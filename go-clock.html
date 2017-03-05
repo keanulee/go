@@ -1,5 +1,5 @@
-<link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="go-now-behavior.html">
+<link rel="import" href="bower_components/polymer/polymer-element.html">
+<link rel="import" href="go-now-mixin.html">
 
 <dom-module id="go-clock">
   <template>
@@ -27,20 +27,18 @@
   </template>
 
   <script>
-  Polymer({
-    is: 'go-clock',
+  class GoClock extends NowMixin(Polymer.Element) {
+    static get is() { return 'go-clock' }
 
-    behaviors: [
-      window.NowBehavior
-    ],
-
-    _getTimeString: function(now) {
+    _getTimeString(now) {
       return now.toLocaleTimeString().substring(0, 11);
-    },
+    }
 
-    _getDateString: function(now) {
+    _getDateString(now) {
       return now.toDateString();
     }
-  });
+  }
+
+  customElements.define(GoClock.is, GoClock);
   </script>
 </dom-module>

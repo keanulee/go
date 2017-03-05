@@ -1,5 +1,5 @@
-<link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="go-refresh-behavior.html">
+<link rel="import" href="bower_components/polymer/polymer-element.html">
+<link rel="import" href="go-refresh-mixin.html">
 
 <dom-module id="go-background">
   <template>
@@ -28,53 +28,57 @@
 
     <div id="cover"></div>
 
-    <content></content>
+    <slot></slot>
   </template>
 
   <script>
-  Polymer({
-    is: 'go-background',
+  class GoBackground extends RefreshMixin(Polymer.Element) {
+    static get is() { return 'go-background' }
 
-    behaviors: [
-      window.RefreshBehavior
-    ],
+    constructor() {
+      super();
 
-    _imgSrc: '',
+      this._imgSrc = '';
 
-    _fadingImg: false,
+      this._fadingImg = false;
+    }
 
-    attached: function() {
+    connectedCallback() {
+      super.connectedCallback();
+
       this.refreshInterval = 600000;
 
-      requestAnimationFrame(function() {
+      requestAnimationFrame(_ => {
         this.addEventListener('transitionend', this._transitionEnd.bind(this));
-      }.bind(this));
-    },
+      });
+    }
 
-    refreshImpl: function() {
+    refreshImpl() {
       this._loadImage();
-    },
+    }
 
-    _loadImage: function() {
+    _loadImage() {
       this._imgSrc = 'http://traffic.kron.com/TrafficCams/cam3_2_large.jpg?' + Math.random();
       var img = document.createElement('img');
       img.addEventListener('load', this._imageLoaded.bind(this));
       img.src = this._imgSrc;
-    },
+    }
 
-    _imageLoaded: function() {
+    _imageLoaded() {
       this.style.backgroundImage = 'url("' + this._imgSrc + '")';
       this._fadingImg = true;
       this.$.cover.style.opacity = '0';
-    },
+    }
 
-    _transitionEnd: function() {
+    _transitionEnd() {
       if (this._fadingImg) {
         this._fadingImg = false;
         this.$.cover.style.backgroundImage = 'url("' + this._imgSrc + '")';
         this.$.cover.style.opacity = '';
       }
     }
-  });
+  }
+
+  customElements.define(GoBackground.is, GoBackground);
   </script>
 </dom-module>

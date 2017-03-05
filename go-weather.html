@@ -1,6 +1,6 @@
-<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/polymer/polymer-element.html">
 <link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="go-refresh-behavior.html">
+<link rel="import" href="go-refresh-mixin.html">
 <script src="bower_components/highcharts/highcharts.js"></script>
 
 <dom-module id="go-weather">
@@ -26,94 +26,98 @@
   </template>
 
   <script>
-  Polymer({
-    is: 'go-weather',
+  class GoWeather extends RefreshMixin(Polymer.Element) {
+    static get is() { return 'go-weather' }
 
-    behaviors: [
-      window.RefreshBehavior
-    ],
+    static get properties() {
+      return {
+        _url: {
+          type: String,
+          value: 'https://api.worldweatheronline.com/free/v2/weather.ashx?key=4c6df087794e4d7497635723161603&format=json&q=94116'
+        }
+      };
+    }
 
-    properties: {
-      _url: {
-        type: String,
-        value: 'https://api.worldweatheronline.com/free/v2/weather.ashx?key=4c6df087794e4d7497635723161603&format=json&q=94116'
-      }
-    },
+    connectedCallback() {
+      super.connectedCallback();
 
-    attached: function() {
       this.refreshInterval = 3600000;
 
-      this._chart = new Highcharts.Chart({
-        chart: {
-          renderTo: this.$.chart,
-          backgroundColor: 'transparent',
-          alignTicks: false
-        },
-        title: { text: '' },
-        xAxis: [{
-          labels: {
-            style: { color: '#FFF' }
+      requestAnimationFrame(_ => {
+        this._chart = new Highcharts.Chart({
+          chart: {
+            renderTo: this.$.chart,
+            backgroundColor: 'transparent',
+            alignTicks: false
           },
-          categories: ['8 AM', '11 AM', '2 PM', '5 PM', '8 PM', '11 PM'],
-          crosshair: true
-        }],
-        yAxis: [{
           title: { text: '' },
-          labels: {
-            format: '{value}°C',
-            style: { color: '#FFF' }
+          xAxis: [{
+            labels: {
+              style: { color: '#FFF' }
+            },
+            categories: ['8 AM', '11 AM', '2 PM', '5 PM', '8 PM', '11 PM'],
+            crosshair: true
+          }],
+          yAxis: [{
+            title: { text: '' },
+            labels: {
+              format: '{value}°C',
+              style: { color: '#FFF' }
+            },
+            min: 0,
+            max: 30,
+            allowDecimals: false
+          }, {
+            title: { text: '' },
+            labels: { enabled: false },
+            min: 0,
+            max: 100,
+            gridLineWidth: 0,
+            opposite: true
+          }],
+          tooltip: {
+            shared: true,
+            positioner: (labelWidth, labelHeight, point) => {
+              return {
+                x: Math.min(point.plotX, this._chart.plotWidth - labelWidth / 2),
+                y: 0
+              };
+            }
           },
-          min: 0,
-          max: 30,
-          allowDecimals: false
-        }, {
-          title: { text: '' },
-          labels: { enabled: false },
-          min: 0,
-          max: 100,
-          gridLineWidth: 0,
-          opposite: true
-        }],
-        tooltip: {
-          shared: true,
-          positioner: function(labelWidth, labelHeight, point) {
-            return {
-              x: Math.min(point.plotX, this._chart.plotWidth - labelWidth / 2),
-              y: 0
-            };
-          }.bind(this)
-        },
-        legend: { enabled: false },
-        series: [{
-          name: 'Temp',
-          type: 'spline',
-          color: '#FFF',
-          data: [null, null, null, null, null, null],
-          tooltip: { valueSuffix: '°C' }
-        }, {
-          name: 'Rain',
-          type: 'column',
-          borderColor: '#4CF',
-          color: 'rgba(68, 204, 255, 0.5)',
-          yAxis: 1,
-          data: [null, null, null, null, null, null],
-          tooltip: { valueSuffix: '%' }
-        }]
+          legend: { enabled: false },
+          series: [{
+            name: 'Temp',
+            type: 'spline',
+            color: '#FFF',
+            data: [null, null, null, null, null, null],
+            tooltip: { valueSuffix: '°C' }
+          }, {
+            name: 'Rain',
+            type: 'column',
+            borderColor: '#4CF',
+            color: 'rgba(68, 204, 255, 0.5)',
+            yAxis: 1,
+            data: [null, null, null, null, null, null],
+            tooltip: { valueSuffix: '%' }
+          }]
+        });
       });
-    },
+    }
 
-    refreshImpl: function() {
+    refreshImpl() {
       this.$.ajax.generateRequest();
-    },
+    }
 
-    _renderChart: function(event) {
+    _renderChart(event) {
       var hourly = event.detail.response.data.weather[0].hourly.slice(2);
-      var temps = hourly.map(function(item) { return parseInt(item.tempC, 10); });
-      var pops = hourly.map(function(item) { return parseInt(item.chanceofrain, 10); });
+      var temps = hourly.map(item => parseInt(item.tempC, 10));
+      var pops = hourly.map(item => parseInt(item.chanceofrain, 10));
 
       this._chart.series[0].setData(temps, false /* redraw */);
       this._chart.series[1].setData(pops);
     }
-  });
+  };
+
+  customElements.define(GoWeather.is, GoWeather);
   </script>
 </dom-module>

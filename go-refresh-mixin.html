@@ -1,5 +1,5 @@
 <script>
-(function() {
+(_ => {
   var _registeredElements = [];
 
   function _refreshAll() {
@@ -14,55 +14,64 @@
     }
   }
 
-  document.addEventListener('visibilitychange', function() {
+  document.addEventListener('visibilitychange', _ => {
     document.hidden ? _clearAllTimers() : _refreshAll();
   });
 
-  /* @polymerBehavior */
-  window.RefreshBehavior = {
-    properties: {
-      refreshInterval: {
-        type: Number,
-        observer: '_resetTimer'
-      }
-    },
+  window.RefreshMixin = subclass => class extends subclass {
+    static get properties() {
+      return {
+        refreshInterval: {
+          type: Number,
+          observer: '_resetTimer'
+        }
+      };
+    }
 
-    _refreshTimer: null,
+    constructor() {
+      super();
 
-    attached: function() {
+      this._refreshTimer = null;
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+
       if (_registeredElements.indexOf(this) === -1) {
         _registeredElements.push(this);
       }
       this.refresh();
-    },
+    }
 
-    detached: function() {
+    disconnectedCallback() {
+      super.disconnectedCallback();
+
       this._clearTimer();
       var i = _registeredElements.indexOf(this);
       if (i !== -1) {
         _registeredElements.splice(i, 1);
       }
-    },
+    }
 
-    refreshAll: function() {
+    refreshAll() {
       _refreshAll();
-    },
+    }
 
-    refresh: function() {
+    refresh() {
       this._resetTimer();
       this.refreshImpl();
-    },
+    }
 
-    refreshImpl: function() { /* noop - to be overwritten */ },
+    refreshImpl() { /* noop - to be overwritten */ }
 
-    _resetTimer: function() {
+    _resetTimer() {
       this._clearTimer();
       if (this.refreshInterval > 0) {
         this._refreshTimer = window.setTimeout(this.refresh.bind(this), this.refreshInterval);
       }
-    },
+    }
 
-    _clearTimer: function() {
+    _clearTimer() {
       if (this._refreshTimer !== null) {
         window.clearTimeout(this._refreshTimer);
         this._refreshTimer = null;
