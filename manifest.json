@@ -2,12 +2,12 @@
   "name": "Dashboard",
   "short_name": "Dashboard",
   "icons": [{
-    "src": "https://cdn1.iconfinder.com/data/icons/appicns/128/appicns_Dashboard.png",
-    "sizes": "128x128",
+    "src": "icon.png",
+    "sizes": "256x256",
     "type": "image/png"
   }],
   "start_url": ".",
-  "background_color": "#000",
+  "background_color": "#89d0ed",
   "display": "standalone",
-  "theme_color": "#000"
+  "theme_color": "#89d0ed"
 }
