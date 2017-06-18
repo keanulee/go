@@ -18,7 +18,11 @@
     document.hidden ? _clearAllTimers() : _refreshAll();
   });
 
-  window.RefreshMixin = subclass => class extends subclass {
+  /**
+   * @polymer
+   * @mixinFunction
+   */
+  window.RefreshMixin = superclass => class extends superclass {
     static get properties() {
       return {
         refreshInterval: {

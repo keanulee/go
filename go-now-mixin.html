@@ -1,6 +1,10 @@
 <script>
 (_ => {
-  window.NowMixin = subclass => class extends subclass {
+  /**
+   * @polymer
+   * @mixinFunction
+   */
+  window.NowMixin = superclass => class extends superclass {
     static get properties() {
       return {
         now: Object

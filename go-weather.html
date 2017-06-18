@@ -16,7 +16,7 @@
     }
 
     #chart {
-      height: 200px;
+      height: 220px;
     }
     </style>
 
@@ -33,7 +33,7 @@
       return {
         _url: {
           type: String,
-          value: 'https://api.worldweatheronline.com/free/v2/weather.ashx?key=4c6df087794e4d7497635723161603&format=json&q=94116'
+          value: 'http://api.openweathermap.org/data/2.5/forecast?id=5391959&units=metric&APPID=d2441fb44c98dee98c10e91af43f763c'
         }
       };
     }
@@ -64,14 +64,14 @@
               format: '{value}°C',
               style: { color: '#FFF' }
             },
-            min: 0,
-            max: 30,
+            min: 5,
+            max: 35,
             allowDecimals: false
           }, {
             title: { text: '' },
             labels: { enabled: false },
             min: 0,
-            max: 100,
+            max: 10,
             gridLineWidth: 0,
             opposite: true
           }],
@@ -98,7 +98,7 @@
             color: 'rgba(68, 204, 255, 0.5)',
             yAxis: 1,
             data: [null, null, null, null, null, null],
-            tooltip: { valueSuffix: '%' }
+            tooltip: { valueSuffix: 'mm' }
           }]
         });
       });
@@ -109,10 +109,17 @@
     }
 
     _renderChart(event) {
-      var hourly = event.detail.response.data.weather[0].hourly.slice(2);
-      var temps = hourly.map(item => parseInt(item.tempC, 10));
-      var pops = hourly.map(item => parseInt(item.chanceofrain, 10));
+      var hourly = event.detail.response.list.slice(0, 6);
+      var times = hourly.map(item => {
+        var d = new Date(item.dt * 1000);
+        var s = d.toLocaleTimeString();
+        var match = /([^:]*):.*([AP]M)/.exec(s);
+        return match ? match[1] + ' ' + match[2] : '';
+      });
+      var temps = hourly.map(item => Math.round(item.main.temp));
+      var pops = hourly.map(item => item.rain && item.rain['3h'] || 0);
 
+      this._chart.xAxis[0].setCategories(times, false /* redraw */);
       this._chart.series[0].setData(temps, false /* redraw */);
       this._chart.series[1].setData(pops);
     }
