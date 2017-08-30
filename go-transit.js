@@ -1,0 +1,136 @@
+import * as Polymer from './node_modules/@polymer/polymer/polymer-element.js';
+import './node_modules/@polymer/iron-ajax/iron-ajax.js';
+import './go-now-mixin.js';
+import './go-refresh-mixin.js';
+class GoTransit extends NowMixin(RefreshMixin(Polymer.Element)) {
+  static get template() {
+    return `
+    <style>
+    :host {
+      display: block;
+      position: relative;
+      margin: 10px;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+    }
+
+    :host::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 20px;
+      bottom: 40px;
+      border-radius: 2px;
+      background-color: #fff;
+      opacity: 0.5;
+    }
+
+    .cars-container {
+      position: relative;
+      height: 44px;
+      overflow-x: auto;
+    }
+
+    .car {
+      position: absolute;
+      line-height: 20px;
+      text-align: center;
+    }
+
+    .car::before {
+      content: attr(route);
+      display: block;
+      background-color: purple;
+      border-radius: 50%;
+      width: 24px;
+      line-height: 24px;
+      font-size: 18px;
+    }
+    </style>
+
+    <iron-ajax id="ajax" url="[[_url]]" last-response="{{_response}}" handle-as="document"></iron-ajax>
+
+    <div class="cars-container">
+      <dom-repeat items="[[routes]]" as="route">
+        <template>
+          <dom-repeat items="[[route.directions]]" as="direction">
+            <template>
+              <dom-repeat items="[[direction.predictions]]" as="prediction">
+                <template>
+                  <div class="car" route\$="[[route.routeTag]]" style\$="[[_computeCarPosition(prediction.epochTime, now)]]">
+                    [[_computeMinsLeft(prediction.epochTime, now)]]
+                  </div>
+                </template>
+              </dom-repeat>
+            </template>
+          </dom-repeat>
+        </template>
+      </dom-repeat>
+    </div>
+`;
+  }
+
+  static get is() { return 'go-transit' }
+
+  static get properties() {
+    return {
+      routes: {
+        type: Object,
+        computed: '_computeRoutes(_response)'
+      },
+
+      _url: {
+        type: String,
+        value: 'https://test.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=L&stopId=16627'
+      },
+
+      _response: Object
+    };
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    this.refreshInterval = 60000;
+  }
+
+  refreshImpl() {
+    this.$.ajax.generateRequest();
+  }
+
+  _computeRoutes() {
+    return this._map(this._response.firstElementChild.children, predictions => {
+      return {
+        routeTag: predictions.getAttribute('routeTag'),
+        directions: this._map(predictions.getElementsByTagName('direction'), direction => {
+          return {
+            predictions: this._map(direction.getElementsByTagName('prediction'), prediction => {
+              return {
+                epochTime: parseInt(prediction.getAttribute('epochTime'), 10)
+              };
+            })
+          };
+        })
+      };
+    });
+  }
+
+  _map(nodes, fn) {
+    return Array.prototype.map.call(nodes, fn.bind(this));
+  }
+
+  _computeCarPosition(eta, now) {
+    if (eta < now.getTime()) {
+      return 'display: none';
+    }
+    return 'transform: translate3d(' + ((eta - now) / 5000).toFixed(0) + 'px, 0 ,0);';
+  }
+
+  _computeMinsLeft(eta, now) {
+    return ((eta - now.getTime()) / 1000 / 60).toFixed(0);
+  }
+}
+
+customElements.define(GoTransit.is, GoTransit);

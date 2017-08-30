@@ -1,0 +1,36 @@
+(_ => {
+  /**
+   * @polymer
+   * @mixinFunction
+   */
+  window.NowMixin = superclass => class extends superclass {
+    static get properties() {
+      return {
+        now: Object
+      };
+    }
+
+    constructor() {
+      super();
+
+      this._nowTimer = null;
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+
+      this.now = new Date();
+      this._nowTimer = window.setInterval(this._tick.bind(this), 1000);
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+
+      window.clearInterval(this._nowTimer);
+    }
+
+    _tick() {
+      this.now = new Date();
+    }
+  };
+})();

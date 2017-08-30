@@ -12,10 +12,10 @@
 
   <title>Dashboard</title>
 
-  <link rel="import" href="go-background.html">
-  <link rel="import" href="go-clock.html">
-  <link rel="import" href="go-transit.html">
-  <link rel="import" href="go-weather.html">
+  <script type="module" src="./go-background.js"></script>
+  <script type="module" src="./go-clock.js"></script>
+  <script type="module" src="./go-transit.js"></script>
+  <script type="module" src="./go-weather.js"></script>
 
   <style>
   body {
@@ -45,9 +45,13 @@
   </go-background>
 
   <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-  }
-  </script>
+  
+ 
+ 
+ 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
   
 </body>
